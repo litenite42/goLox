@@ -32,6 +32,10 @@ func (s *Scanner) addToken(ttype TokenType, lexeme string, literal interface{}, 
 	s.tokens = append(s.tokens, newToken(ttype, lexeme, literal, line))
 }
 
+func (s *Scanner) addIdentifier() {
+	s.addLiteral(IDENT, nil)
+}
+
 func (s *Scanner) addLiteral(ttype TokenType, literal interface{}) {
 	text := s.src[s.start:s.current]
 	s.addToken(ttype, text, literal, s.line)
@@ -95,9 +99,12 @@ func (s *Scanner) scanToken() {
 	default:
 		if s.isDigit(c) {
 			s.number()
+		} else if s.isAlpha(c) {
+			s.identifier()
 		} else {
 			loxerr.Error(s.line, "Unexpected character!")
 		}
+		break
 	}
 }
 
@@ -125,6 +132,16 @@ func (s Scanner) isDigit(b byte) bool {
 	return b >= '0' && b <= '9'	
 }
 
+func (s Scanner) isAlpha(b byte) bool {
+	return (b >= 'a' && b <= 'z') ||
+		(b >= 'A' && b <= 'Z') ||
+		b == '_'
+}
+
+func (s Scanner) isAlphaNumeric(b byte) bool {
+	return s.isDigit(b) || s.isAlpha(b)
+}
+
 func (s *Scanner) number() {
 	for s.isDigit(s.peek()) {
 		s.advance()
@@ -146,6 +163,14 @@ func (s *Scanner) number() {
 	}
 
 	s.addLiteral(NUMBER, valF) 
+}
+
+func (s *Scanner) identifier() {
+	for s.isAlphaNumeric(s.peek()) {
+		s.advance()
+	}
+
+	s.addIdentifier()
 }
 
 func (s *Scanner) advance() byte {

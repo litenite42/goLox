@@ -43,6 +43,7 @@ const (
 	THIS
 	TRUE
 	WHILE
+	VAR
 	//
 	EOF
 )

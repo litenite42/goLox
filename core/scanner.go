@@ -32,8 +32,8 @@ func (s *Scanner) addToken(ttype TokenType, lexeme string, literal interface{}, 
 	s.tokens = append(s.tokens, newToken(ttype, lexeme, literal, line))
 }
 
-func (s *Scanner) addIdentifier() {
-	s.addLiteral(IDENT, nil)
+func (s *Scanner) addIdentifier(t TokenType) {
+	s.addLiteral(t, nil)
 }
 
 func (s *Scanner) addLiteral(ttype TokenType, literal interface{}) {
@@ -129,7 +129,7 @@ func (s *Scanner) string() {
 }
 
 func (s Scanner) isDigit(b byte) bool {
-	return b >= '0' && b <= '9'	
+	return b >= '0' && b <= '9'
 }
 
 func (s Scanner) isAlpha(b byte) bool {
@@ -162,7 +162,7 @@ func (s *Scanner) number() {
 		return
 	}
 
-	s.addLiteral(NUMBER, valF) 
+	s.addLiteral(NUMBER, valF)
 }
 
 func (s *Scanner) identifier() {
@@ -170,7 +170,14 @@ func (s *Scanner) identifier() {
 		s.advance()
 	}
 
-	s.addIdentifier()
+	text := s.src[s.start:s.current]
+	typ, ok := ReservedWords()[text]
+
+	if !ok {
+		typ = IDENT
+	}
+
+	s.addIdentifier(typ)
 }
 
 func (s *Scanner) advance() byte {
@@ -196,15 +203,17 @@ func (s *Scanner) match(expected byte) bool {
 
 func (s *Scanner) peek() byte {
 	if s.atEnd() {
-		return 0 
+		return 0
 	}
 
 	return s.src[s.current]
 }
 
 func (s *Scanner) peekNext() byte {
-	if s.current + 1 >= len(s.src) { return 0 }
-	return s.src[s.current + 1]
+	if s.current+1 >= len(s.src) {
+		return 0
+	}
+	return s.src[s.current+1]
 }
 
 func (s Scanner) atEnd() bool {
